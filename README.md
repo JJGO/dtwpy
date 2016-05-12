@@ -16,4 +16,4 @@ Tou will need to compile the dependencies as follows
 python setup_dtw.py build_ext --inplace
 ```
 
-A demo showcasing the behavior of the different DTW functions and some time benchmarks is shown [here](__todo__)
+A demo showcasing the behavior of the different DTW functions and some time benchmarks is shown [here](http://nbviewer.jupyter.org/github/JJGO/dtw/blob/master/dtw_demo.ipynb)
