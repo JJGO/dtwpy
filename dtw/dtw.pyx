@@ -23,6 +23,22 @@ import logging
 
 np.import_array()
 
+def _normalize(a):
+    n = a - np.mean(a)
+    n = n / np.std(a)
+    return n
+
+def dtw(x,y,**kwargs):
+    if kwargs.get('normalize',False):
+        x = _normalize(x)
+        y = _normalize(y)
+        del kwargs['normalize']
+    frac = kwargs.get('frac',False)
+    if frac:
+        kwargs['k'] = int(frac*max(len(x),len(y)))
+        del kwargs['frac']
+    return dtw_std(x,y,**kwargs)
+
 cdef retrace_path(int n, int m, np.ndarray[np.float_t, ndim=2] cost_arr):
     '''
        Retraces the warping path back from cost_arr.
