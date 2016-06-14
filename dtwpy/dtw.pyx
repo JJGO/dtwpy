@@ -1,5 +1,6 @@
 ## This code is written by Davide Albanese, <albanese@fbk.eu>
 ## (C) 2011 mlpy Developers.
+## (C) 2016 Jose Javier Gonzalez
 
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -23,20 +24,66 @@ import logging
 
 np.import_array()
 
-def _normalize(a):
-    n = a - np.mean(a)
-    n = n / np.std(a)
-    return n
+def _normalize(array):
+    """
+    Zero mean unit variance array normalization
 
-def dtw(x,y,**kwargs):
-    if kwargs.get('normalize',False):
-        x = _normalize(x)
-        y = _normalize(y)
-        del kwargs['normalize']
-    frac = kwargs.get('frac',False)
-    if frac:
-        kwargs['k'] = int(frac*max(len(x),len(y)))
-        del kwargs['frac']
+    Args:
+        array : numpy array
+    Returns:
+        norm : numpy array
+            array with normalized values
+    """
+    norm = array - np.mean(array)
+    norm = norm / np.std(array)
+    return norm
+
+def dtw(x, y, normalize=False, **kwargs):
+    """
+    Dynamic Time Warping distance between two sequences x,y
+
+    Note: This is a wrapper of dtw_std, see that function for
+        more details regarding keyword arguments
+
+    Args:
+        x : 1d array_like object (N)
+            first sequence
+        y : 1d array_like object (M)
+            second sequence
+        dist_only : bool
+            compute only the distance
+        metric : 'euclidean', 'sqeuclidean' or 'cosine'
+            distance metric to use
+        constraint: string
+            one of the following:
+                None or ('None') : unconstrained DTW.
+                'sakoe_chiba': DTW constrained by Sakoe & Chiba band of width 2k + 1 (requires value of k set), see [Sakoe78]
+                'slanted_band': Generalisation of Sakoe & Chiba constraint that supports sequences of different lengths
+                'itakura'    : DTW constrained by Itakura Parallelogram, see
+        k : int or float
+            parameter required by sakoe_chiba and slanted_band constraints.
+            int : maximum distance to consider for dtw window
+            float : fraction of the longest sequence to consider as the maximum distance for window
+        warping_penalty: double
+            warping penalty to impose on non-diagonal path changes (default: 0)
+        normalize : bool
+            if true applies zero mean unit variance normalization before computing DTW
+    Returns:
+        dist : float
+            unnormalized minimum-distance warp path
+            between sequences
+        cost : 2d numpy array (N,M) [if dist_only=False]
+            accumulated cost matrix
+        path : tuple of two 1d numpy array (path_x, path_y) [if dist_only=False]
+            warp path
+    """
+    if normalize:
+        x, y = _normalize(x), _normalize(y)
+    k = kwargs.get('k',False)
+    if type( k ) == float:
+        # fraction with respect to largest but cannot be longer than the shortest sequence
+        m, M = min(len(x),len(y)), max(len(x),len(y))
+        kwargs['k'] = min(int(k*M), m)
     return dtw_std(x,y,**kwargs)
 
 cdef retrace_path(int n, int m, np.ndarray[np.float_t, ndim=2] cost_arr):
@@ -90,7 +137,7 @@ def dtw_std(x, y, dist_only=True, metric='euclidean', constraint=None, k=None, w
           parameter required by sakoe_chiba and slanted_band constraints.
        warping_penalty: double
           warping penalty to impose on non-diagonal path changes (default: 0)
-       :Returns:
+    :Returns:
        dist : float
           unnormalized minimum-distance warp path
           between sequences
