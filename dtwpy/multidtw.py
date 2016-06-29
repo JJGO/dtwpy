@@ -4,6 +4,7 @@ import numpy as np
 
 from .dtw import dtw
 
+
 def _dtw_wrapper(arg):
     """
     Wrapper function over dtwpy.dtw.dtw in order to unpack
@@ -11,7 +12,8 @@ def _dtw_wrapper(arg):
     Needed for parallelization purposes
     """
     args, kwargs = arg
-    return dtw(*args,**kwargs)
+    return dtw(*args, **kwargs)
+
 
 def dtw_distances(X, n_jobs=1, **kwargs):
     """
@@ -33,16 +35,17 @@ def dtw_distances(X, n_jobs=1, **kwargs):
     n_jobs = mp.cpu_count() if n_jobs == -1 else n_jobs
 
     N = len(X)
-    dist_matrix = np.zeros([N,N])
+    dist_matrix = np.zeros([N, N])
     indexes = range(N)
     # Symmetric zero diagonal matrix , only compute unique pairwise distances
-    params = zip(itertools.combinations(X,2),itertools.repeat(kwargs))
+    params = zip(itertools.combinations(X, 2), itertools.repeat(kwargs))
     with mp.Pool(processes=n_jobs) as pool:
         distances = pool.map(_dtw_wrapper, params)
-    for (i,j), d in zip(itertools.combinations(indexes,2),distances):
-        dist_matrix[(i,j)] = d
-        dist_matrix[(j,i)] = d
+    for (i, j), d in zip(itertools.combinations(indexes, 2), distances):
+        dist_matrix[(i, j)] = d
+        dist_matrix[(j, i)] = d
     return dist_matrix
+
 
 def dtw_medoid(X, **kwargs):
     """
@@ -58,6 +61,6 @@ def dtw_medoid(X, **kwargs):
         medoid_index : int
             index of medoid sequence in X
     """
-    dist_matrix = dtw_distances(X,**kwargs)
-    medoid_index = np.argmin(np.sum(dist_matrix,axis=0))
+    dist_matrix = dtw_distances(X, **kwargs)
+    medoid_index = np.argmin(np.sum(dist_matrix, axis=0))
     return medoid_index

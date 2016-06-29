@@ -38,7 +38,7 @@ def _normalize(array):
     norm = norm / np.std(array)
     return norm
 
-def dtw(x, y, normalize=False, **kwargs):
+def dtw(x, y, normalize=False, path_norm=False, **kwargs):
     """
     Dynamic Time Warping distance between two sequences x,y
 
@@ -67,7 +67,9 @@ def dtw(x, y, normalize=False, **kwargs):
         warping_penalty: double
             warping penalty to impose on non-diagonal path changes (default: 0)
         normalize : bool
-            if true applies zero mean unit variance normalization before computing DTW
+            if true applies z-normalization (zero mean unit variance) normalization before computing DTW
+        path_norm : bool
+            if true scales the dtw distance by the length of the warping path
     Returns:
         dist : float
             unnormalized minimum-distance warp path
@@ -78,13 +80,22 @@ def dtw(x, y, normalize=False, **kwargs):
             warp path
     """
     if normalize:
-        x, y = _normalize(x), _normalize(y)
+        x, y = _normalize(x), _normalize(y)  
     k = kwargs.get('k',False)
     if type( k ) == float:
         # fraction with respect to largest but cannot be longer than the shortest sequence
         m, M = min(len(x),len(y)), max(len(x),len(y))
         kwargs['k'] = min(int(k*M), m)
-    return dtw_std(x,y,**kwargs)
+    if not path_norm:
+        return dtw_std(x,y,**kwargs)
+    else:
+        if not kwargs.get('dist_only',True):
+            dist, cost_arr, (px_arr, py_arr) = dtw_std(x,y,**kwargs)
+            return dist/len(px_arr), cost_arr/len(px_arr), (px_arr, py_arr)
+        else:
+            kwargs['dist_only'] = False
+            dist, cost_arr, (px_arr, py_arr) = dtw_std(x,y,**kwargs)
+            return dist/len(px_arr)
 
 cdef retrace_path(int n, int m, np.ndarray[np.float_t, ndim=2] cost_arr):
     '''
