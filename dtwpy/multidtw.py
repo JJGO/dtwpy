@@ -15,7 +15,7 @@ def _dtw_wrapper(arg):
     return dtw(*args, **kwargs)
 
 
-def dtw_distances(X, n_jobs=1, **kwargs):
+def dtw_distances(X, Y=None, n_jobs=1, **kwargs):
     """
     Given an array of arbitrarily sized 1d arrays, computes the
      Dynamic Time Warping distance matrix between each pair of sequences.
@@ -35,15 +35,24 @@ def dtw_distances(X, n_jobs=1, **kwargs):
     n_jobs = mp.cpu_count() if n_jobs == -1 else n_jobs
 
     N = len(X)
-    dist_matrix = np.zeros([N, N])
-    indexes = range(N)
-    # Symmetric zero diagonal matrix , only compute unique pairwise distances
-    params = zip(itertools.combinations(X, 2), itertools.repeat(kwargs))
-    with mp.Pool(processes=n_jobs) as pool:
-        distances = pool.map(_dtw_wrapper, params)
-    for (i, j), d in zip(itertools.combinations(indexes, 2), distances):
-        dist_matrix[(i, j)] = d
-        dist_matrix[(j, i)] = d
+    if Y is None:
+        # TODO use numpy.triu_indices to avoid using the indexes
+        dist_matrix = np.zeros([N, N])
+        indexes = range(N)
+        # Symmetric zero diagonal matrix , only compute unique pairwise distances
+        params = zip(itertools.combinations(X, 2), itertools.repeat(kwargs))
+        with mp.Pool(processes=n_jobs) as pool:
+            distances = pool.map(_dtw_wrapper, params)
+        for (i, j), d in zip(itertools.combinations(indexes, 2), distances):
+            dist_matrix[(i, j)] = d
+            dist_matrix[(j, i)] = d
+    else:
+        M = len(Y)
+        params = zip(itertools.product(X, Y), itertools.repeat(kwargs))
+        with mp.Pool(processes=n_jobs) as pool:
+            distances = pool.map(_dtw_wrapper, params)
+        dist_matrix = np.array(distances).reshape(N, M)
+
     return dist_matrix
 
 
