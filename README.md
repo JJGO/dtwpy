@@ -1,5 +1,7 @@
 # dtwpy
 
+![](https://i.imgur.com/0l65hCP.png)
+
 DTWpy is a open source Python3 library for fast and parallel computation of Dynamic Time Warping distances and alignments of time series.
 
 This project is a standalone version of the [mlpy](https://github.com/lukauskas/mlpy/tree/master/mlpy/dtw) implementation for Dynamic Time Warping.
