@@ -10,7 +10,7 @@ Building on top of that implementation, wrapper functions are provided for ease 
 
 The package includes a easy to use plotting library for pairwise time series alignment and cost visualization.
 
-#Installation
+# Installation
 
 The package requires Python >=3.3 since it uses the [multiprocessing](https://docs.python.org/3.5/library/multiprocessing.html) package to release the GIL.
 
@@ -26,6 +26,6 @@ To compile the dependencies you will have to run the following command
 python setup_dtw.py build_ext --inplace
 ```
 
-#Tutorial
+# Tutorial
 
 A demo showcasing the behavior of the different DTW functions and some time benchmarks is shown [here](http://nbviewer.jupyter.org/github/JJGO/dtw/blob/master/dtw_demo.ipynb)
